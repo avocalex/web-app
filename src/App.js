@@ -5,10 +5,13 @@ import './App.css';
 function App() {
   return (
     <div className="App">
+      <h1>
+        welcome to lazycorn.io
+      </h1>
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          just testing things out <code>src/App.js</code>
         </p>
         <a
           className="App-link"

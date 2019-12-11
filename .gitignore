@@ -1,2 +1,6 @@
 # Dependency directories
 node_modules/
+
+#DS_Store
+src/.DS_Store
+public/.DS_Store
