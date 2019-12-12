@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from './logo.svg';
+import logo from './lc.png';
 import './App.css';
 
 function App() {
@@ -11,15 +11,15 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          just testing things out <code>src/App.js</code>
+          just testing things out
         </p>
         <a
           className="App-link"
-          href="https://reactjs.org"
+          href="https://lazycorn-16aa7.firebaseapp.com/"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          lazycorn website URL
         </a>
       </header>
     </div>
