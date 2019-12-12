@@ -1,28 +1,26 @@
 import React from 'react';
-import logo from './lc.png';
 import './App.css';
+import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
+
+import Homepage from './Homepage';
+import About from './About';
+import Shop from './Shop';
+import Nav from './Nav';
+import ItemDetail from './Itemdetail'
 
 function App() {
   return (
-    <div className="App">
-      <h1>
-        welcome to lazycorn.io
-      </h1>
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          just testing things out
-        </p>
-        <a
-          className="App-link"
-          href="https://lazycorn-16aa7.firebaseapp.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          lazycorn website URL
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Nav />
+          <Switch>
+            <Route path="/" exact component={Homepage} />
+            <Route path="/about" component={About} />
+            <Route path="/shop" exact component={Shop} />
+            <Route path="/shop/:id" component={ItemDetail}/>
+          </Switch>
+      </div>
+    </Router>
   );
 }
 
