@@ -45,54 +45,101 @@ $.ajax(settings).done(function (response, status, response_header) {
 	
 	$.ajax(settings).done(function (response) {
 		console.log(response)
+		var flightID = 0
 
 		// Showing the price of flight #1 with currency symbol
-		if (response.Currencies[0].SymbolOnLeft)
-			console.log("Price is " + response.Currencies[0].Symbol + response.Itineraries[0].PricingOptions[0].Price)
-		else
-			console.log("Price is " + response.Itineraries[0].PricingOptions[0].Price + response.Currencies[0].Symbol)
-		
-		// Get information of outbound flight (only the first option as of now)
-		OutboundLegID = response.Itineraries[0].OutboundLegID
-		for (var i = 0; i < response.Legs.length; i++){
-			if (response.Legs[i].ID == OutboundLegID) {
-				// Record the date and time of departure of outbound flight
-				console.log("Departure date and time: " + response.Legs[i].Departure)
-				console.log("Arrival date and time: " + response.Legs[i].Arrival)
+		logPrice(response, flightID)
 
-				// Check if there is a transit
-				var transitNumber = response.Legs[i].SegmentIds.length - 1
-				// If there is/are transit(s), show the number and description of transit
-				if (transitNumber > 0) {
-					console.log("There will be " + transitNumber + " transits.")
-
-					// Go over the segment information to check the details of each segment
-					for (var seg = 0; seg < transitNumber + 1; seg++){
-						var segmentInformation = response.Segments[response.Legs[i].SegmentIds[seg]]
-						var OriginStation = segmentInformation.OriginStation
-						var DestinationStation = segmentInformation.DestinationStation
-
-						// Check the name of the departure/arrival airport for each segment
-						for (var loc = 0; loc < response.Places.length; loc++){
-							if (response.Places[loc].Id == OriginStation)
-								var originPlace = response.Places[loc].Name + " " + response.Places[loc].Type
-							
-							if (response.Places[loc].Id == DestinationStation)
-								var destinationPlace = response.Places[loc].Name + " " + response.Places[loc].Type
-						}
-						console.log("Segment #" + seg + " departs " + originPlace + " and arrives at " + destinationPlace)
-						
-						if (seg < transitNumber){
-							var nextSegmentInformation = response.Segments[response.Legs[i].SegmentIds[seg + 1]]
-							logLayoverTime(segmentInformation.ArrivalDateTime, nextSegmentInformation.DepartureDateTime)
-						}
-					}
-				}
-				break
-			}
-		}
+		// Get information of outbound and inbound flight (only the first option as of now)
+		logLegInformation(response, 0, "out")
+		logLegInformation(response, 0, "in")
 	})
 })
+
+function logPrice(response, flightChoice){
+	// A function to show the price of the flight with the currency symbol
+	// Input:
+	//		response - the response body from Skyscanner API
+	//		flightChoice - the index of itineraries (integer)
+	// Return: none
+
+	if (response.Currencies[0].SymbolOnLeft)
+		console.log("Price is " + response.Currencies[0].Symbol + response.Itineraries[flightChoice].PricingOptions[flightChoice].Price)
+	else
+		console.log("Price is " + response.Itineraries[flightChoice].PricingOptions[flightChoice].Price + response.Currencies[0].Symbol)
+}
+
+function logLegInformation(response, flightID, pathChoice){
+	// A function to show the information of the flight path regarding the specified direction (inbound or outbound)
+	// Input:
+	//		response - response body from Skyscanner API
+	//		flightID - the index of flight option
+	//		pathChoice - the direction of flight (inbound or outbout)
+	// Return: none
+
+	if (pathChoice == "out")
+		var flightLegID = response.Itineraries[flightID].OutboundLegId
+	else if (pathChoice == "in")
+		var flightLegID = response.Itineraries[flightID].InboundLegId
+	else{
+		alert("ERROR: The pathChoice (direction of flight) must be either 'in' or 'out'!")
+		return
+	}
+
+	for (var i = 0; i < response.Legs.length; i++){
+		if (response.Legs[i].Id == flightLegID) {
+			// Make a string to describe the direction of the path (inbound or outbound)
+			var flightDirection = pathChoice + "bound"
+
+			// Record the date and time of departure of the flight
+			console.log("Departure date and time for " + flightDirection  + " flight: " + response.Legs[i].Departure)
+			console.log("Arrival date and time for " + flightDirection  + " flight: " + response.Legs[i].Arrival)
+
+			checkForTransit(response, i, 0)
+
+			break
+		}
+	}
+}
+
+function checkForTransit(response, legIndex, minimumTransitNum){
+	// A function to check if there is a required number of transit in the flight
+	// Input:
+	//		response - response body from Skyscanner API
+	//		legIndex - the index of leg (integer)
+	//		minimumTransitNum - the minimum required number of transits during the flight
+
+	var transitNumber = response.Legs[legIndex].SegmentIds.length - 1
+	// If there is/are transit(s), show the number and description of transit
+	if (transitNumber <= 0)
+		console.log("There will be no transits.")
+	else
+		console.log("There will be " + transitNumber + " transits.")
+	
+	if (transitNumber >= minimumTransitNum){
+		// Go over the segment information to check the details of each segment
+		for (var seg = 0; seg < transitNumber + 1; seg++){
+			var segmentInformation = response.Segments[response.Legs[legIndex].SegmentIds[seg]]
+			var OriginStation = segmentInformation.OriginStation
+			var DestinationStation = segmentInformation.DestinationStation
+
+			// Check the name of the departure/arrival airport for each segment
+			for (var loc = 0; loc < response.Places.length; loc++){
+				if (response.Places[loc].Id == OriginStation)
+					var originPlace = response.Places[loc].Name + " " + response.Places[loc].Type
+				
+				if (response.Places[loc].Id == DestinationStation)
+					var destinationPlace = response.Places[loc].Name + " " + response.Places[loc].Type
+			}
+			console.log("Segment #" + seg + " departs " + originPlace + " and arrives at " + destinationPlace)
+
+			if (seg < transitNumber){
+				var nextSegmentInformation = response.Segments[response.Legs[legIndex].SegmentIds[seg + 1]]
+				logLayoverTime(segmentInformation.ArrivalDateTime, nextSegmentInformation.DepartureDateTime)
+			}
+		}
+	}
+}
 
 function logLayoverTime(arrivalTime, departureTime){
 	// A function to compute and show the layover time in hours and minutes.
